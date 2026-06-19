@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "type": "doc",
+  "content": [
+    {
+      "type": "heading",
+      "attrs": { "level": 1 },
+      "content": [{ "type": "text", "text": "Sample Document" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        { "type": "text", "text": "This is " },
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "bold" },
+        { "type": "text", "text": " text." }
+      ]
+    }
+  ]
+}

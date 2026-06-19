@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help bootstrap check check-all build vendor
+.PHONY: help bootstrap check check-all build test vendor
 
 # Let Go automatically download the toolchain version required by go.mod.
 export GOTOOLCHAIN := auto
@@ -14,6 +14,7 @@ help:
 	@echo "  check                - Run checks on staged changes"
 	@echo "  check-all            - Run checks on all files"
 	@echo "  build                - Build the adfmd binary"
+	@echo "  test                 - Smoke-test the adfmd binary"
 	@echo "  vendor               - Tidy and vendor Go dependencies"
 
 bootstrap:
@@ -39,6 +40,14 @@ check-all:
 
 build:
 	go build -o bin/adfmd main.go
+
+test: build
+	./bin/adfmd --help > /dev/null
+	./bin/adfmd to-md --help > /dev/null
+	./bin/adfmd to-adf --help > /dev/null
+	./bin/adfmd to-md resources/sample.adf > /dev/null
+	./bin/adfmd to-adf resources/sample.md > /dev/null
+	@echo "All good!"
 
 vendor:
 	go mod tidy
