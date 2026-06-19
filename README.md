@@ -33,3 +33,12 @@ adfmd to-adf document.md
 cat document.adf | adfmd to-md
 cat document.md | adfmd to-adf
 ```
+
+## Releasing
+
+Tags use [Semantic Versioning](https://semver.org/). Pushing a tag triggers a GitHub Action that builds and publishes binaries.
+
+```
+git tag v1.0.0
+git push origin v1.0.0
+```
