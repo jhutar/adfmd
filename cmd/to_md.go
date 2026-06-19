@@ -15,7 +15,7 @@ var toMdCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		inputFile := args[0]
 
-		inputData, err := os.ReadFile(inputFile)
+		inputData, err := os.ReadFile(inputFile) // #nosec G304 -- user-provided CLI argument
 		if err != nil {
 			return fmt.Errorf("failed to read input file: %w", err)
 		}

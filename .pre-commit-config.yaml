@@ -7,7 +7,9 @@ repos:
       - id: check-yaml
         args: ["--unsafe"]
       - id: end-of-file-fixer
+        exclude: ^vendor/
       - id: trailing-whitespace
+        exclude: ^vendor/
       - id: check-added-large-files
         args: ["--maxkb=1000"]
       - id: check-merge-conflict
@@ -22,6 +24,7 @@ repos:
         entry: gofmt -w
         language: system
         types: [go]
+        exclude: ^vendor/
 
       - id: go-vet
         name: go vet
