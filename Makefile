@@ -4,6 +4,9 @@
 # Let Go automatically download the toolchain version required by go.mod.
 export GOTOOLCHAIN := auto
 
+# Required by adf-to-markdown and goldmark-adf libraries.
+export GOEXPERIMENT := jsonv2
+
 help:
 	@echo "Available targets:"
 	@echo "  help                 - Show this help message"
