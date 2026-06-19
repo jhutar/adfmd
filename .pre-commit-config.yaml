@@ -1,0 +1,57 @@
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+        args: ["--unsafe"]
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-toml
+      - id: mixed-line-ending
+
+  - repo: local
+    hooks:
+      - id: go-fmt
+        name: gofmt
+        entry: gofmt -w
+        language: system
+        types: [go]
+
+      - id: go-vet
+        name: go vet
+        entry: go vet ./...
+        language: system
+        types: [go]
+        pass_filenames: false
+
+      - id: golangci-lint
+        name: golangci-lint
+        entry: golangci-lint run ./...
+        language: system
+        types: [go]
+        pass_filenames: false
+
+      - id: gosec
+        name: gosec
+        entry: gosec ./...
+        language: system
+        types: [go]
+        pass_filenames: false
+
+      - id: go-mod-vendor
+        name: go mod vendor
+        entry: bash -c 'make vendor && git diff --exit-code go.mod go.sum'
+        language: system
+        pass_filenames: false
+
+      - id: go-build
+        name: go build
+        entry: make build
+        language: system
+        pass_filenames: false
