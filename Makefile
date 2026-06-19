@@ -47,6 +47,10 @@ test: build
 	./bin/adfmd to-adf --help > /dev/null
 	./bin/adfmd to-md resources/sample.adf > /dev/null
 	./bin/adfmd to-adf resources/sample.md > /dev/null
+	cat resources/sample.adf | ./bin/adfmd to-md > /dev/null
+	cat resources/sample.md | ./bin/adfmd to-adf > /dev/null
+	./bin/adfmd resources/sample.adf > /dev/null
+	./bin/adfmd resources/sample.md > /dev/null
 	@echo "All good!"
 
 vendor:
