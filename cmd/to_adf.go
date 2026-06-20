@@ -30,7 +30,7 @@ func convertToAdf(args []string) error {
 		return fmt.Errorf("failed to convert Markdown to ADF: %w", err)
 	}
 
-	fixed, err := fixTaskNodes(adfOutput)
+	fixed, err := fixAdf(adfOutput)
 	if err != nil {
 		return fmt.Errorf("failed to post-process ADF: %w", err)
 	}
@@ -39,7 +39,7 @@ func convertToAdf(args []string) error {
 	return nil
 }
 
-func fixTaskNodes(data []byte) ([]byte, error) {
+func fixAdf(data []byte) ([]byte, error) {
 	var doc any
 	if err := json.Unmarshal(data, &doc); err != nil {
 		return nil, err
@@ -56,18 +56,9 @@ func walkAndFix(v any) {
 
 	nodeType, _ := obj["type"].(string)
 
-	if nodeType == "taskList" || nodeType == "taskItem" ||
-		nodeType == "decisionList" || nodeType == "decisionItem" {
-		if attrs, ok := obj["attrs"].(map[string]any); ok {
-			if id, _ := attrs["localId"].(string); id == "" {
-				attrs["localId"] = uuid.New().String()
-			}
-		}
-	}
-
-	if nodeType == "taskItem" {
-		stripCheckboxPrefix(obj)
-	}
+	fillEmptyLocalId(obj, nodeType)
+	stripCheckboxPrefix(obj, nodeType)
+	dropMarksConflictingWithCode(obj, nodeType)
 
 	if content, ok := obj["content"].([]any); ok {
 		for _, child := range content {
@@ -76,8 +67,24 @@ func walkAndFix(v any) {
 	}
 }
 
-func stripCheckboxPrefix(taskItem map[string]any) {
-	content, ok := taskItem["content"].([]any)
+func fillEmptyLocalId(obj map[string]any, nodeType string) {
+	switch nodeType {
+	case "taskList", "taskItem", "decisionList", "decisionItem":
+	default:
+		return
+	}
+	if attrs, ok := obj["attrs"].(map[string]any); ok {
+		if id, _ := attrs["localId"].(string); id == "" {
+			attrs["localId"] = uuid.New().String()
+		}
+	}
+}
+
+func stripCheckboxPrefix(obj map[string]any, nodeType string) {
+	if nodeType != "taskItem" {
+		return
+	}
+	content, ok := obj["content"].([]any)
 	if !ok {
 		return
 	}
@@ -105,6 +112,37 @@ func stripCheckboxPrefix(taskItem map[string]any) {
 			para["content"] = texts[1:]
 		}
 	}
+}
+
+func dropMarksConflictingWithCode(obj map[string]any, nodeType string) {
+	if nodeType != "text" {
+		return
+	}
+	marks, ok := obj["marks"].([]any)
+	if !ok || len(marks) <= 1 {
+		return
+	}
+	hasCode := false
+	for _, m := range marks {
+		if mark, ok := m.(map[string]any); ok {
+			if t, _ := mark["type"].(string); t == "code" {
+				hasCode = true
+				break
+			}
+		}
+	}
+	if !hasCode {
+		return
+	}
+	kept := make([]any, 0, 1)
+	for _, m := range marks {
+		if mark, ok := m.(map[string]any); ok {
+			if t, _ := mark["type"].(string); t != "code" {
+				kept = append(kept, m)
+			}
+		}
+	}
+	obj["marks"] = kept
 }
 
 func init() {
