@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/ajbeck/goldmark-adf"
-	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
@@ -56,8 +55,7 @@ func walkAndFix(v any) {
 
 	nodeType, _ := obj["type"].(string)
 
-	fillEmptyLocalId(obj, nodeType)
-	stripCheckboxPrefix(obj, nodeType)
+	convertTaskListToBulletList(obj, nodeType)
 	dropMarksConflictingWithCode(obj, nodeType)
 
 	if content, ok := obj["content"].([]any); ok {
@@ -67,23 +65,18 @@ func walkAndFix(v any) {
 	}
 }
 
-func fillEmptyLocalId(obj map[string]any, nodeType string) {
-	switch nodeType {
-	case "taskList", "taskItem", "decisionList", "decisionItem":
-	default:
-		return
-	}
-	if attrs, ok := obj["attrs"].(map[string]any); ok {
-		if id, _ := attrs["localId"].(string); id == "" {
-			attrs["localId"] = uuid.New().String()
-		}
+func convertTaskListToBulletList(obj map[string]any, nodeType string) {
+	if nodeType == "taskList" {
+		obj["type"] = "bulletList"
+		delete(obj, "attrs")
+	} else if nodeType == "taskItem" {
+		obj["type"] = "listItem"
+		delete(obj, "attrs")
+		stripCheckboxPrefix(obj)
 	}
 }
 
-func stripCheckboxPrefix(obj map[string]any, nodeType string) {
-	if nodeType != "taskItem" {
-		return
-	}
+func stripCheckboxPrefix(obj map[string]any) {
 	content, ok := obj["content"].([]any)
 	if !ok {
 		return
