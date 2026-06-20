@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ajbeck/goldmark-adf"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
@@ -55,7 +56,8 @@ func walkAndFix(v any) {
 
 	nodeType, _ := obj["type"].(string)
 
-	convertTaskListToBulletList(obj, nodeType)
+	fillEmptyLocalId(obj, nodeType)
+	fixTaskItemContent(obj, nodeType)
 	dropMarksConflictingWithCode(obj, nodeType)
 
 	if content, ok := obj["content"].([]any); ok {
@@ -65,46 +67,59 @@ func walkAndFix(v any) {
 	}
 }
 
-func convertTaskListToBulletList(obj map[string]any, nodeType string) {
-	if nodeType == "taskList" {
-		obj["type"] = "bulletList"
-		delete(obj, "attrs")
-	} else if nodeType == "taskItem" {
-		obj["type"] = "listItem"
-		delete(obj, "attrs")
-		stripCheckboxPrefix(obj)
+func fillEmptyLocalId(obj map[string]any, nodeType string) {
+	switch nodeType {
+	case "taskList", "taskItem", "decisionList", "decisionItem":
+	default:
+		return
+	}
+	if attrs, ok := obj["attrs"].(map[string]any); ok {
+		if id, _ := attrs["localId"].(string); id == "" {
+			attrs["localId"] = uuid.New().String()
+		}
 	}
 }
 
-func stripCheckboxPrefix(obj map[string]any) {
+func fixTaskItemContent(obj map[string]any, nodeType string) {
+	if nodeType != "taskItem" {
+		return
+	}
 	content, ok := obj["content"].([]any)
 	if !ok {
 		return
 	}
+	var inlined []any
 	for _, child := range content {
 		para, ok := child.(map[string]any)
+		if !ok || para["type"] != "paragraph" {
+			inlined = append(inlined, child)
+			continue
+		}
+		inner, ok := para["content"].([]any)
 		if !ok {
 			continue
 		}
-		if t, _ := para["type"].(string); t != "paragraph" {
-			continue
-		}
-		texts, ok := para["content"].([]any)
-		if !ok || len(texts) == 0 {
-			continue
-		}
-		first, ok := texts[0].(map[string]any)
-		if !ok {
-			continue
-		}
-		if t, _ := first["type"].(string); t != "text" {
-			continue
-		}
-		text, _ := first["text"].(string)
-		if text == "[ ] " || text == "[x] " {
-			para["content"] = texts[1:]
-		}
+		inlined = append(inlined, stripCheckboxPrefix(inner)...)
 	}
+	obj["content"] = inlined
+}
+
+func stripCheckboxPrefix(nodes []any) []any {
+	if len(nodes) == 0 {
+		return nodes
+	}
+	first, ok := nodes[0].(map[string]any)
+	if !ok {
+		return nodes
+	}
+	if t, _ := first["type"].(string); t != "text" {
+		return nodes
+	}
+	text, _ := first["text"].(string)
+	if text == "[ ] " || text == "[x] " {
+		return nodes[1:]
+	}
+	return nodes
 }
 
 func dropMarksConflictingWithCode(obj map[string]any, nodeType string) {
