@@ -51,6 +51,7 @@ test: build
 	cat resources/sample.md | ./bin/adfmd to-adf > /dev/null
 	./bin/adfmd resources/sample.adf > /dev/null
 	./bin/adfmd resources/sample.md > /dev/null
+	echo '{"type":"doc","version":1,"content":[{"type":"codeBlock","attrs":{"wrap":true},"content":[{"type":"text","text":"hello"}]}]}' | ./bin/adfmd to-md > /dev/null
 	@echo "All good!"
 
 vendor:
