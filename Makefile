@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help bootstrap check check-all build test vendor
+.PHONY: help bootstrap check check-all build test vendor tag
 
 # Let Go automatically download the toolchain version required by go.mod.
 export GOTOOLCHAIN := auto
@@ -16,6 +16,7 @@ help:
 	@echo "  build                - Build the adfmd binary"
 	@echo "  test                 - Smoke-test the adfmd binary"
 	@echo "  vendor               - Tidy and vendor Go dependencies"
+	@echo "  tag TAG=vX.Y.Z       - Create and push a release tag"
 
 bootstrap:
 	@echo "==> Installing Python 3.12 (via uv)..."
@@ -54,6 +55,21 @@ test: build
 	echo '{"type":"doc","version":1,"content":[{"type":"codeBlock","attrs":{"wrap":true},"content":[{"type":"text","text":"hello"}]}]}' | ./bin/adfmd to-md > /dev/null
 	echo '{"type":"doc","version":1,"content":[{"type":"taskList","content":[{"type":"taskItem","content":[{"type":"text","text":"item 1"}],"attrs":{"localId":"a","state":"TODO"}},{"type":"taskList","content":[{"type":"taskItem","content":[{"type":"text","text":"nested"}],"attrs":{"localId":"b","state":"TODO"}}],"attrs":{"localId":"c"}}],"attrs":{"localId":"d"}}]}' | ./bin/adfmd to-md > /dev/null
 	@echo "All good!"
+
+tag:
+ifndef TAG
+	@LATEST=$$(git tag --sort=-v:refname | head -1); \
+	if [ -z "$$LATEST" ]; then \
+		echo "No tags found. Create one with:"; \
+		echo "  make tag TAG=v0.1.0"; \
+	else \
+		echo "Latest tag: $$LATEST"; \
+		echo "  make tag TAG=<new_tag>"; \
+	fi
+else
+	git tag $(TAG)
+	git push origin $(TAG)
+endif
 
 vendor:
 	go mod tidy
