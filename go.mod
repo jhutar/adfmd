@@ -4,7 +4,7 @@ go 1.26.4
 
 require (
 	github.com/ajbeck/adf-to-markdown v1.1.1
-	github.com/ajbeck/goldmark-adf v1.2.0
+	github.com/ajbeck/goldmark-adf v1.3.1
 	github.com/google/uuid v1.6.0
 	github.com/spf13/cobra v1.10.2
 )

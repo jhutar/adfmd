@@ -57,7 +57,6 @@ func walkAndFix(v any) {
 	nodeType, _ := obj["type"].(string)
 
 	fillEmptyLocalId(obj, nodeType)
-	fixTaskItemContent(obj, nodeType)
 	dropMarksConflictingWithCode(obj, nodeType)
 
 	if content, ok := obj["content"].([]any); ok {
@@ -78,48 +77,6 @@ func fillEmptyLocalId(obj map[string]any, nodeType string) {
 			attrs["localId"] = uuid.New().String()
 		}
 	}
-}
-
-func fixTaskItemContent(obj map[string]any, nodeType string) {
-	if nodeType != "taskItem" {
-		return
-	}
-	content, ok := obj["content"].([]any)
-	if !ok {
-		return
-	}
-	var inlined []any
-	for _, child := range content {
-		para, ok := child.(map[string]any)
-		if !ok || para["type"] != "paragraph" {
-			inlined = append(inlined, child)
-			continue
-		}
-		inner, ok := para["content"].([]any)
-		if !ok {
-			continue
-		}
-		inlined = append(inlined, stripCheckboxPrefix(inner)...)
-	}
-	obj["content"] = inlined
-}
-
-func stripCheckboxPrefix(nodes []any) []any {
-	if len(nodes) == 0 {
-		return nodes
-	}
-	first, ok := nodes[0].(map[string]any)
-	if !ok {
-		return nodes
-	}
-	if t, _ := first["type"].(string); t != "text" {
-		return nodes
-	}
-	text, _ := first["text"].(string)
-	if text == "[ ] " || text == "[x] " {
-		return nodes[1:]
-	}
-	return nodes
 }
 
 func dropMarksConflictingWithCode(obj map[string]any, nodeType string) {

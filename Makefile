@@ -54,6 +54,7 @@ test: build
 	./bin/adfmd resources/sample.md > /dev/null
 	echo '{"type":"doc","version":1,"content":[{"type":"codeBlock","attrs":{"wrap":true},"content":[{"type":"text","text":"hello"}]}]}' | ./bin/adfmd to-md > /dev/null
 	echo '{"type":"doc","version":1,"content":[{"type":"taskList","content":[{"type":"taskItem","content":[{"type":"text","text":"item 1"}],"attrs":{"localId":"a","state":"TODO"}},{"type":"taskList","content":[{"type":"taskItem","content":[{"type":"text","text":"nested"}],"attrs":{"localId":"b","state":"TODO"}}],"attrs":{"localId":"c"}}],"attrs":{"localId":"d"}}]}' | ./bin/adfmd to-md > /dev/null
+	echo '- [ ] First task\n- [x] Done task' | ./bin/adfmd to-adf > /dev/null
 	@echo "All good!"
 
 tag:
