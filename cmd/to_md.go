@@ -29,12 +29,6 @@ func convertToMd(args []string) error {
 		return fmt.Errorf("failed to pre-process ADF: %w", err)
 	}
 
-	// Workaround for https://github.com/ajbeck/adf-to-markdown/issues/4
-	inputData, err = flattenNestedTaskLists(inputData)
-	if err != nil {
-		return fmt.Errorf("failed to pre-process ADF: %w", err)
-	}
-
 	mdOutput, err := adfmarkdown.UnmarshalADF(inputData)
 	if err != nil {
 		return fmt.Errorf("failed to convert ADF to Markdown: %w", err)
@@ -52,49 +46,6 @@ func stripUnsupportedCodeBlockAttrs(data []byte) ([]byte, error) {
 	}
 	walkAndStripCodeBlockAttrs(doc)
 	return json.Marshal(doc)
-}
-
-func flattenNestedTaskLists(data []byte) ([]byte, error) {
-	var doc any
-	if err := json.Unmarshal(data, &doc); err != nil {
-		return nil, err
-	}
-	walkAndFlattenTaskLists(doc)
-	return json.Marshal(doc)
-}
-
-func walkAndFlattenTaskLists(v any) {
-	obj, ok := v.(map[string]any)
-	if !ok {
-		return
-	}
-	content, ok := obj["content"].([]any)
-	if !ok {
-		return
-	}
-	if nodeType, _ := obj["type"].(string); nodeType == "taskList" {
-		changed := true
-		for changed {
-			changed = false
-			flat := make([]any, 0, len(content))
-			for _, child := range content {
-				childObj, ok := child.(map[string]any)
-				if ok && childObj["type"] == "taskList" {
-					if nested, ok := childObj["content"].([]any); ok {
-						flat = append(flat, nested...)
-						changed = true
-					}
-				} else {
-					flat = append(flat, child)
-				}
-			}
-			content = flat
-		}
-		obj["content"] = content
-	}
-	for _, child := range content {
-		walkAndFlattenTaskLists(child)
-	}
 }
 
 func walkAndStripCodeBlockAttrs(v any) {
