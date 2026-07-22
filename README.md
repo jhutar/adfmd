@@ -7,6 +7,22 @@ Built on top of:
 - [adf-to-markdown](https://github.com/ajbeck/adf-to-markdown) — ADF JSON to Markdown
 - [goldmark-adf](https://github.com/ajbeck/goldmark-adf) — Markdown to ADF JSON
 
+## Installation
+
+Download and install the latest pre-built binary for your platform to `/usr/local/bin`:
+
+### Linux
+
+```bash
+curl -Lo adfmd "https://github.com/jhutar/adfmd/releases/latest/download/adfmd-linux-$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/arm64/')" && chmod +x adfmd && sudo mv adfmd /usr/local/bin/ && adfmd --help
+```
+
+### macOS
+
+```bash
+curl -Lo adfmd "https://github.com/jhutar/adfmd/releases/latest/download/adfmd-darwin-$(uname -m | sed 's/x86_64/amd64/')" && chmod +x adfmd && sudo mv adfmd /usr/local/bin/ && adfmd --help
+```
+
 ## Build
 
 ```
